@@ -230,6 +230,11 @@ public class PdMetaDriver implements MetaDriver {
         }
     }
 
+    @Override
+    public MetaDriverType type() {
+        return MetaDriverType.PD;
+    }
+
     public boolean keepTTLAlive(String key) {
         try {
             TTLResponse response = this.client.keepTTLAlive(key);

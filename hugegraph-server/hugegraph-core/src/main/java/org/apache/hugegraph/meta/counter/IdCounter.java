@@ -15,7 +15,7 @@
  * under the License.
  */
 
-package org.apache.hugegraph.backend.tx;
+package org.apache.hugegraph.meta.counter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,10 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hugegraph.backend.BackendException;
 import org.apache.hugegraph.backend.id.Id;
 import org.apache.hugegraph.backend.id.IdGenerator;
-import org.apache.hugegraph.pd.client.PDClient;
-import org.apache.hugegraph.pd.client.PDConfig;
-import org.apache.hugegraph.pd.common.PDException;
-import org.apache.hugegraph.pd.grpc.Pdpb;
 import org.apache.hugegraph.store.term.HgPair;
 import org.apache.hugegraph.type.HugeType;
 import org.apache.hugegraph.util.E;
@@ -38,26 +34,18 @@ public class IdCounter {
     private static final int DELTA = 10000;
     private static final String DELIMITER = "/";
     private static Map<String, HgPair> ids = new ConcurrentHashMap<>();
-    private final PDClient pdClient;
+    private final IdService idService;
     private final String graphName;
 
-    public IdCounter(PDClient pdClient, String graphName) {
+    public IdCounter(IdService idService, String graphName) {
         this.graphName = graphName;
-        this.pdClient = pdClient;
-    }
-
-    public static void main(String[] args) {
-        PDConfig pdConfig = PDConfig.of("127.0.0.1:8686");
-        PDClient pdClient = PDClient.create(pdConfig);
-        IdCounter idCounters = new IdCounter(pdClient, "hugegraph");
-        System.out.println(idCounters.nextId(HugeType.EDGE_LABEL));
-        System.out.println(idCounters.nextId(HugeType.EDGE_LABEL));
+        this.idService = idService;
     }
 
     public Id nextId(HugeType type) {
         long counter = this.getCounter(type);
         E.checkState(counter != 0L, "Please check whether '%s' is OK",
-                     this.pdClient.toString());
+                     this.idService.toString());
         return IdGenerator.of(counter);
     }
 
@@ -89,11 +77,11 @@ public class IdCounter {
         }
         synchronized (ids) {
             try {
-                this.pdClient.getIdByKey(key,
-                                         (int) (lowest - maxId.longValue()));
+                this.idService.getIdByKey(key,
+                                          (int) (lowest - maxId.longValue()));
                 ids.remove(key);
             } catch (Exception e) {
-                throw new BackendException("");
+                throw new BackendException(e);
             }
         }
     }
@@ -119,7 +107,7 @@ public class IdCounter {
                         ids.put(key, idPair);
                     } catch (Exception e) {
                         throw new BackendException(String.format(
-                                "Failed to get the ID from pd,%s", e));
+                            "Failed to get the ID from pd, %s", e));
                     }
                 }
             }
@@ -133,13 +121,12 @@ public class IdCounter {
                 }
                 if (currentId.longValue() > maxId.longValue()) {
                     try {
-                        Pdpb.GetIdResponse idByKey = pdClient.getIdByKey(key, DELTA);
-                        idPair.getValue().getAndSet(idByKey.getId() +
-                                                    idByKey.getDelta());
-                        idPair.getKey().getAndSet(idByKey.getId());
+                        Long id = idService.getIdByKey(key, DELTA);
+                        idPair.getKey().getAndSet(id);
+                        idPair.getValue().getAndSet(id + DELTA);
                     } catch (Exception e) {
                         throw new BackendException(String.format(
-                                "Failed to get the ID from pd,%s", e));
+                            "Failed to get the ID from pd, %s", e));
                     }
                 }
             }
@@ -152,10 +139,10 @@ public class IdCounter {
 
     public void resetIdCounter(String graphName) {
         try {
-            this.pdClient.resetIdByKey(graphName);
+            this.idService.resetIdByKey(graphName);
             ids = new ConcurrentHashMap<>();
-        } catch (PDException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new BackendException(e);
         }
     }
 }

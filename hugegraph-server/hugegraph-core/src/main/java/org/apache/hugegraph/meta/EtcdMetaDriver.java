@@ -18,7 +18,6 @@
 package org.apache.hugegraph.meta;
 
 import java.io.File;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -154,6 +153,11 @@ public class EtcdMetaDriver implements MetaDriver {
             // keepAlive once Failed
             return 0;
         }
+    }
+
+    @Override
+    public MetaDriverType type() {
+        return MetaDriverType.ETCD;
     }
 
     @Override

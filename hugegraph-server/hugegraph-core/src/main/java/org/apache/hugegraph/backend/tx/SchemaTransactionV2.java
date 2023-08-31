@@ -36,9 +36,15 @@ import org.apache.hugegraph.job.schema.OlapPropertyKeyCreateJob;
 import org.apache.hugegraph.job.schema.OlapPropertyKeyRemoveJob;
 import org.apache.hugegraph.job.schema.SchemaJob;
 import org.apache.hugegraph.job.schema.VertexLabelRemoveJob;
+import org.apache.hugegraph.meta.EtcdMetaDriver;
 import org.apache.hugegraph.meta.MetaDriver;
+import org.apache.hugegraph.meta.MetaDriverType;
 import org.apache.hugegraph.meta.MetaManager;
 import org.apache.hugegraph.meta.PdMetaDriver;
+import org.apache.hugegraph.meta.counter.EtcdIdService;
+import org.apache.hugegraph.meta.counter.IdCounter;
+import org.apache.hugegraph.meta.counter.IdService;
+import org.apache.hugegraph.meta.counter.PdIdService;
 import org.apache.hugegraph.meta.managers.SchemaMetaManager;
 import org.apache.hugegraph.perf.PerfUtil.Watched;
 import org.apache.hugegraph.schema.EdgeLabel;
@@ -72,19 +78,27 @@ public class SchemaTransactionV2 implements ISchemaTransaction {
     private final IdCounter idCounter;
     private final SchemaMetaManager schemaMetaManager;
 
-    public SchemaTransactionV2(MetaDriver metaDriver,
-                             String cluster,
-                             HugeGraphParams graphParams) {
+    public SchemaTransactionV2(MetaDriver metaDriver, String cluster, HugeGraphParams graphParams) {
         E.checkNotNull(graphParams, "graphParams");
         this.graphParams = graphParams;
         // TODO: uncomment later - graph space
         //this.graphSpace = graphParams.graph().graphSpace();
         this.graphSpace = "";
         this.graph = graphParams.name();
-        this.schemaMetaManager =
-                new SchemaMetaManager(metaDriver, cluster, this.graph());
-        this.idCounter = new IdCounter(((PdMetaDriver) metaDriver).pdClient(),
-                                       idKeyName(this.graphSpace, this.graph));
+        this.schemaMetaManager = new SchemaMetaManager(metaDriver, cluster, this.graph());
+        MetaDriverType type = metaDriver.type();
+        IdService idService;
+        switch (type) {
+            case PD:
+                idService = new PdIdService(((PdMetaDriver) metaDriver).pdClient());
+                break;
+            case ETCD:
+                idService = new EtcdIdService(((EtcdMetaDriver) metaDriver));
+                break;
+            default:
+                throw new AssertionError(String.format("Invalid meta driver type: %s", type));
+        }
+        this.idCounter = new IdCounter(idService, idKeyName(this.graphSpace, this.graph));
     }
 
     private static void setCreateTimeIfNeeded(SchemaElement schema) {

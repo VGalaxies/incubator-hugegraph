@@ -73,4 +73,6 @@ public interface MetaDriver {
      * @return next leaseId
      */
     public long keepAlive(String key, long lease);
+
+    MetaDriverType type();
 }
