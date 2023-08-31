@@ -148,7 +148,7 @@ public class MetaManager {
 
     public synchronized void connect(String cluster, MetaDriverType type,
                                      String trustFile, String clientCertFile,
-                                     String clientKeyFile, Object... args) {
+                                     String clientKeyFile, String endpoints) {
         E.checkArgument(cluster != null && !cluster.isEmpty(),
                         "The cluster can't be null or empty");
         if (this.metaDriver == null) {
@@ -157,15 +157,13 @@ public class MetaManager {
             switch (type) {
                 case ETCD:
                     this.metaDriver = trustFile == null || trustFile.isEmpty() ?
-                                      new EtcdMetaDriver(args) :
+                                      new EtcdMetaDriver(endpoints) :
                                       new EtcdMetaDriver(trustFile,
                                                          clientCertFile,
-                                                         clientKeyFile, args);
+                                                         clientKeyFile, endpoints);
                     break;
                 case PD:
-                    assert args.length > 0;
-                    String pdPeer = String.join(",", (List<String>) args[0]);
-                    this.metaDriver = new PdMetaDriver(pdPeer);
+                    this.metaDriver = new PdMetaDriver(endpoints);
                     break;
                 default:
                     throw new AssertionError(String.format(
@@ -1249,11 +1247,6 @@ public class MetaManager {
     public void setWhiteIpStatus(boolean status) {
         String key = this.whiteIpStatusKey();
         this.metaDriver.put(key, ((Boolean) status).toString());
-    }
-
-    public enum MetaDriverType {
-        ETCD,
-        PD
     }
 
     public enum BindingType {

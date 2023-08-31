@@ -61,7 +61,7 @@ public class EtcdMetaDriver implements MetaDriver {
     private DistributedLock lock;
 
     public EtcdMetaDriver(String trustFile, String clientCertFile,
-                          String clientKeyFile, Object... endpoints) {
+                          String clientKeyFile, String endpoints) {
         ClientBuilder builder = this.etcdMetaDriverBuilder(endpoints);
 
         SslContext sslContext = openSslContext(trustFile, clientCertFile,
@@ -70,7 +70,7 @@ public class EtcdMetaDriver implements MetaDriver {
         this.lock = DistributedLock.getInstance(this.client);
     }
 
-    public EtcdMetaDriver(Object... endpoints) {
+    public EtcdMetaDriver(String endpoints) {
         ClientBuilder builder = this.etcdMetaDriverBuilder(endpoints);
         this.client = builder.build();
         this.lock = DistributedLock.getInstance(this.client);
@@ -112,34 +112,36 @@ public class EtcdMetaDriver implements MetaDriver {
         return ssl;
     }
 
-    public ClientBuilder etcdMetaDriverBuilder(Object... endpoints) {
-        int length = endpoints.length;
-        ClientBuilder builder = null;
-        if (endpoints[0] instanceof List && endpoints.length == 1) {
-            builder = Client.builder()
-                            .endpoints(((List<String>) endpoints[0])
-                                               .toArray(new String[0]));
-        } else if (endpoints[0] instanceof String) {
-            for (int i = 1; i < length; i++) {
-                E.checkArgument(endpoints[i] instanceof String,
-                                "Inconsistent endpoint %s(%s) with %s(%s)",
-                                endpoints[i], endpoints[i].getClass(),
-                                endpoints[0], endpoints[0].getClass());
-            }
-            builder = Client.builder().endpoints((String[]) endpoints);
-        } else if (endpoints[0] instanceof URI) {
-            for (int i = 1; i < length; i++) {
-                E.checkArgument(endpoints[i] instanceof String,
-                                "Invalid endpoint %s(%s)",
-                                endpoints[i], endpoints[i].getClass(),
-                                endpoints[0], endpoints[0].getClass());
-            }
-            builder = Client.builder().endpoints((URI[]) endpoints);
-        } else {
-            E.checkArgument(false, "Invalid endpoint %s(%s)",
-                            endpoints[0], endpoints[0].getClass());
-        }
-        return builder;
+    public ClientBuilder etcdMetaDriverBuilder(String endpoints) {
+        return Client.builder().endpoints(endpoints.split(","));
+        // TODO: only accept endpoints like `x,y,z`
+        //int length = endpoints.length;
+        //ClientBuilder builder = null;
+        //if (endpoints[0] instanceof List && endpoints.length == 1) {
+        //    builder = Client.builder()
+        //                    .endpoints(((List<String>) endpoints[0])
+        //                                       .toArray(new String[0]));
+        //} else if (endpoints[0] instanceof String) {
+        //    for (int i = 1; i < length; i++) {
+        //        E.checkArgument(endpoints[i] instanceof String,
+        //                        "Inconsistent endpoint %s(%s) with %s(%s)",
+        //                        endpoints[i], endpoints[i].getClass(),
+        //                        endpoints[0], endpoints[0].getClass());
+        //    }
+        //    builder = Client.builder().endpoints((String[]) endpoints);
+        //} else if (endpoints[0] instanceof URI) {
+        //    for (int i = 1; i < length; i++) {
+        //        E.checkArgument(endpoints[i] instanceof String,
+        //                        "Invalid endpoint %s(%s)",
+        //                        endpoints[i], endpoints[i].getClass(),
+        //                        endpoints[0], endpoints[0].getClass());
+        //    }
+        //    builder = Client.builder().endpoints((URI[]) endpoints);
+        //} else {
+        //    E.checkArgument(false, "Invalid endpoint %s(%s)",
+        //                    endpoints[0], endpoints[0].getClass());
+        //}
+        //return builder;
     }
 
     @Override

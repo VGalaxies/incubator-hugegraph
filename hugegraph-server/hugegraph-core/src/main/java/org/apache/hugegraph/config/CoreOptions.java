@@ -25,6 +25,7 @@ import static org.apache.hugegraph.config.OptionChecker.rangeInt;
 
 import org.apache.hugegraph.backend.query.Query;
 import org.apache.hugegraph.type.define.CollectionType;
+import org.apache.hugegraph.meta.MetaDriverType;
 import org.apache.hugegraph.util.Bytes;
 
 public class CoreOptions extends OptionHolder {
@@ -649,5 +650,31 @@ public class CoreOptions extends OptionHolder {
                     allowValues("JCF", "EC", "FU"),
                     CollectionType::valueOf,
                     "EC"
+            );
+
+    public static final ConfigOption<String> META_CLUSTER =
+            new ConfigOption<>(
+                    "meta.cluster",
+                    "Cluster name of meta driver.",
+                    disallowEmpty(),
+                    "hg"
+            );
+
+    public static final ConfigConvOption<String, MetaDriverType> META_DRIVER_TYPE =
+            new ConfigConvOption<>(
+                    "meta.driver_type",
+                    "The implementation type of meta driver.",
+                    allowValues("ETCD", "PD"),
+                    MetaDriverType::valueOf,
+                    "PD"
+            );
+
+    public static final ConfigOption<String> META_ENDPOINTS =
+            new ConfigOption<>(
+                    "meta.endpoints",
+                    "Endpoints of meta driver.",
+                    disallowEmpty(),
+                    // TODO: only accept endpoints like `x,y,z`
+                    "localhost:8686"
             );
 }

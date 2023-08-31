@@ -70,6 +70,7 @@ import org.apache.hugegraph.masterelection.RoleElectionOptions;
 import org.apache.hugegraph.masterelection.RoleElectionStateMachine;
 import org.apache.hugegraph.masterelection.StandardClusterRoleStore;
 import org.apache.hugegraph.masterelection.StandardRoleElectionStateMachine;
+import org.apache.hugegraph.meta.MetaDriverType;
 import org.apache.hugegraph.meta.MetaManager;
 import org.apache.hugegraph.perf.PerfUtil.Watched;
 import org.apache.hugegraph.rpc.RpcServiceConfig4Client;
@@ -463,9 +464,11 @@ public class StandardHugeGraph implements HugeGraph {
     }
 
     private void initMetaManager() {
-        this.metaManager.connect("hg", MetaManager.MetaDriverType.PD,
-                                 "ca", "ca", "ca",
-                                 Collections.singletonList("127.0.0.1:8686"));
+        this.metaManager.connect(this.configuration.get(CoreOptions.META_CLUSTER),
+                                 this.configuration.get(CoreOptions.META_DRIVER_TYPE),
+                                 // TODO: ssl context
+                                 null, null, null,
+                                 this.configuration.get(CoreOptions.META_ENDPOINTS));
     }
 
     private ISchemaTransaction openSchemaTransaction() throws HugeException {
