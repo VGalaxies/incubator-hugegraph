@@ -15,13 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.hugegraph.auth;
+package org.apache.hugegraph.pd.common;
 
-public interface AuthConstant {
+import org.junit.After;
+import org.junit.BeforeClass;
 
-    /*
-     * Fields in token (tmp)
-     */
-    String TOKEN_USER_NAME = "user_name";
-    String TOKEN_USER_ID = "user_id";
+public class BaseCommonTest {
+    @BeforeClass
+    public static void init() {
+
+    }
+
+    @After
+    public void teardown() {
+        // pass
+    }
 }

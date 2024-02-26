@@ -15,13 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.hugegraph.auth;
+package org.apache.hugegraph.pd;
 
-public interface AuthConstant {
+import java.io.File;
 
-    /*
-     * Fields in token (tmp)
-     */
-    String TOKEN_USER_NAME = "user_name";
-    String TOKEN_USER_ID = "user_id";
+public class UnitTestBase {
+    public static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            for (File file : dir.listFiles()) {
+                deleteDir(file);
+            }
+        }
+        return dir.delete();
+    }
 }

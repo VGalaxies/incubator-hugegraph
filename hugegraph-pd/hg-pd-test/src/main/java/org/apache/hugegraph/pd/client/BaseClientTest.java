@@ -15,13 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.hugegraph.auth;
+package org.apache.hugegraph.pd.client;
 
-public interface AuthConstant {
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
-    /*
-     * Fields in token (tmp)
-     */
-    String TOKEN_USER_NAME = "user_name";
-    String TOKEN_USER_ID = "user_id";
+@RunWith(MockitoJUnitRunner.class)
+public class BaseClientTest {
+    public static PDClient pdClient;
+    public final String storeAddr = "localhost";
+    public final String graphName = "default/hugegraph/g";
+    public long storeId = 0;
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        PDConfig config = PDConfig.of("localhost:8686");
+//        PDConfig config = PDConfig.of("10.81.116.77:8986");
+        config.setEnableCache(true);
+        pdClient = PDClient.create(config);
+    }
+
+    @After
+    public void teardown() throws Exception {
+        // pass
+    }
 }

@@ -15,13 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.hugegraph.auth;
+package org.apache.hugegraph.pd.common;
 
-public interface AuthConstant {
+import org.apache.hugegraph.pd.service.IdServiceTest;
+import org.apache.hugegraph.pd.service.KvServiceTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-    /*
-     * Fields in token (tmp)
-     */
-    String TOKEN_USER_NAME = "user_name";
-    String TOKEN_USER_ID = "user_id";
+import lombok.extern.slf4j.Slf4j;
+
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+        PartitionUtilsTest.class,
+        PartitionCacheTest.class,
+        MetadataKeyHelperTest.class,
+        KvServiceTest.class,
+        HgAssertTest.class,
+        KVPairTest.class,
+        IdServiceTest.class
+})
+
+@Slf4j
+public class CommonSuiteTest {
+
+
 }

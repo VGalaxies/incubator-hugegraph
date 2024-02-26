@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.hugegraph.auth;
+package org.apache.hugegraph.pd.core.meta;
 
-public interface AuthConstant {
+import static org.junit.Assert.assertArrayEquals;
 
-    /*
-     * Fields in token (tmp)
-     */
-    String TOKEN_USER_NAME = "user_name";
-    String TOKEN_USER_ID = "user_id";
+import org.apache.hugegraph.pd.meta.MetadataKeyHelper;
+import org.junit.Test;
+
+public class MetadataKeyHelperTest {
+
+    @Test
+    public void testMoveTaskKey() {
+        var key = MetadataKeyHelper.getMoveTaskKey("foo", 0, 1);
+        assertArrayEquals(key, "TASK_MOVE/foo/0/1".getBytes());
+        var key2 = MetadataKeyHelper.getMoveTaskPrefix("foo");
+        assertArrayEquals(key2, "TASK_MOVE/foo".getBytes());
+    }
 }
