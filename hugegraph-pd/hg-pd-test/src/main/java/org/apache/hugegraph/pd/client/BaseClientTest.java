@@ -32,7 +32,7 @@ public class BaseClientTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         PDConfig config = PDConfig.of("localhost:8686");
-//        PDConfig config = PDConfig.of("10.81.116.77:8986");
+//        PDConfig config = PDConfig.of("10.81.116.77:8986"); tmp
         config.setEnableCache(true);
         pdClient = PDClient.create(config);
     }
